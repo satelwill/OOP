@@ -122,88 +122,142 @@ void GUI::loadConfig(const wxString& name) {
     int mid_cols = cols / 2;
 
     switch (configChoice->GetSelection()) {
-        case 0: // Bloc 
-            jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-            jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols);
-            break;
-            
-        case 1: // Tube 
-            jeu->AjouteCellule(mid_rows - 1, mid_cols);
-            jeu->AjouteCellule(mid_rows + 1, mid_cols);
-            jeu->AjouteCellule(mid_rows, mid_cols - 1);
-            jeu->AjouteCellule(mid_rows, mid_cols + 1);
-            break;
-            
-        case 2: // Bateau 
-            jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-            jeu->AjouteCellule(mid_rows, mid_cols - 1);
-            jeu->AjouteCellule(mid_rows, mid_cols + 1);
-            jeu->AjouteCellule(mid_rows + 1, mid_cols);
-            break;
-            
-        case 3: // Ruche 
-            jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-            jeu->AjouteCellule(mid_rows, mid_cols - 2);
-            jeu->AjouteCellule(mid_rows, mid_cols + 1);
-            jeu->ajoute_ligne(mid_rows + 1, mid_cols - 1, mid_cols);
-            break;
-            
-        case 4: // Hameçon 
-            jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-            jeu->AjouteCellule(mid_rows, mid_cols - 1);
-            jeu->AjouteCellule(mid_rows, mid_cols + 1);
-            jeu->AjouteCellule(mid_rows + 1, mid_cols + 1);
-            jeu->ajoute_ligne(mid_rows + 2, mid_cols + 1, mid_cols + 2);
-            break;
+    case 0: // Bloc 
+        jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
+        jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols);
+        break;
+        
+    case 1: // Tube 
+        jeu->AjouteCellule(mid_rows - 1, mid_cols);
+        jeu->AjouteCellule(mid_rows + 1, mid_cols);
+        jeu->AjouteCellule(mid_rows, mid_cols - 1);
+        jeu->AjouteCellule(mid_rows, mid_cols + 1);
+        break;
+        
+    case 2: // Bateau 
+        jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
+        jeu->AjouteCellule(mid_rows, mid_cols - 1);
+        jeu->AjouteCellule(mid_rows, mid_cols + 1);
+        jeu->AjouteCellule(mid_rows + 1, mid_cols);
+        break;
+        
+    case 3: // Ruche 
+        jeu->ajoute_colonne(mid_rows - 1, mid_cols - 1, mid_cols);
+        jeu->AjouteCellule(mid_cols - 2, mid_rows);
+        jeu->AjouteCellule(mid_cols + 1, mid_rows);
+        jeu->ajoute_colonne(mid_rows + 1, mid_cols - 1, mid_cols);
+        break;
+        
+    case 4: // Hameçon 
 
-        case 5: // Clignotant 
-            jeu->ajoute_colonne(mid_cols, mid_rows - 1, mid_rows + 1);
-            break;
-            
-        case 6: // Horloge 
-            jeu->ajoute_ligne(mid_rows - 2, mid_cols - 1, mid_cols + 1);
-            jeu->ajoute_ligne(mid_rows + 2, mid_cols - 2, mid_cols);
-            jeu->AjouteCellule(mid_rows - 1, mid_cols - 1);
-            jeu->AjouteCellule(mid_rows, mid_cols + 1);
-            break;
-            
-        case 7: // Pentadecathlon 
-            jeu->ajoute_ligne(mid_rows, mid_cols - 4, mid_cols + 5);
-            break;
-            
-        case 8: // Galaxie 
-            jeu->ajoute_ligne(mid_rows - 4, mid_cols - 4, mid_cols + 1);
-            jeu->ajoute_ligne(mid_rows - 3, mid_cols - 4, mid_cols + 1);
-            jeu->ajoute_colonne(mid_cols + 3, mid_rows - 4, mid_rows + 1);
-            jeu->ajoute_colonne(mid_cols + 4, mid_rows - 4, mid_rows + 1);
-            jeu->ajoute_ligne(mid_rows + 3, mid_cols - 1, mid_cols + 4);
-            jeu->ajoute_ligne(mid_rows + 4, mid_cols - 1, mid_cols + 4);
-            jeu->ajoute_colonne(mid_cols - 4, mid_rows - 1, mid_rows + 4);
-            jeu->ajoute_colonne(mid_cols - 3, mid_rows - 1, mid_rows + 4);
-            break;
+        
+        jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
+        jeu->AjouteCellule(mid_cols - 1, mid_rows);
+        jeu->AjouteCellule(mid_cols + 1, mid_rows);
+        jeu->AjouteCellule(mid_cols , mid_rows);
+        jeu->AjouteCellule(mid_cols + 1 , mid_rows + 2);
+        jeu->ajoute_ligne(mid_rows + 2, mid_cols + 1, mid_cols + 2);
+        break;
 
-        case 9: // (Vaisseau)
-            jeu->AjouteCellule(mid_rows - 1, mid_cols);
-            jeu->AjouteCellule(mid_rows, mid_cols + 1);
-            jeu->ajoute_ligne(mid_rows + 1, mid_cols - 1, mid_cols + 1);
-            break;
+    case 5: // Clignotant 
+        jeu->ajoute_colonne(mid_cols, mid_rows - 1, mid_rows + 1);
+        break;
+        
+    case 6: // Horloge 
+        // Top Square 2x2
+        jeu->ajoute_ligne(mid_rows - 6, mid_cols + 1, mid_cols + 2);
+        jeu->ajoute_ligne(mid_rows - 5, mid_cols + 1, mid_cols + 2);
+        // Bottom Square 2x2
+        jeu->ajoute_ligne(mid_rows + 5, mid_cols - 1, mid_cols);
+        jeu->ajoute_ligne(mid_rows + 6, mid_cols - 1, mid_cols);
+        // Left 2x2
+        jeu->ajoute_colonne(mid_cols - 6, mid_rows - 1, mid_rows);
+        jeu->ajoute_colonne(mid_cols - 5, mid_rows - 1, mid_rows);
+        // Right 2x2
+        jeu->ajoute_colonne(mid_cols + 5, mid_rows + 1, mid_rows);
+        jeu->ajoute_colonne(mid_cols + 6, mid_rows + 1, mid_rows);
+        
+        // LR inner cycle
+        jeu->ajoute_colonne(mid_cols - 2, mid_rows - 1, mid_rows + 2);
+        jeu->ajoute_colonne(mid_cols + 3, mid_rows - 1, mid_rows + 2);
+        // TB inner cycle
+        jeu->ajoute_ligne(mid_rows - 2, mid_cols - 1, mid_cols + 2);
+        jeu->ajoute_ligne(mid_rows + 3, mid_cols - 1, mid_cols + 2);
+        
+        
+        jeu->AjouteCellule(mid_cols , mid_rows- 1);
+        jeu->AjouteCellule(mid_cols + 1, mid_rows );
+        jeu->AjouteCellule(mid_cols + 1, mid_rows + 1);
+        break;
+        
+    case 7: // Pentadecathlon
+        // Top and bottom horizontal 2-cell segments
+        jeu->ajoute_ligne(mid_rows - 4, mid_cols, mid_cols + 1);
+        jeu->ajoute_ligne(mid_rows + 4, mid_cols, mid_cols + 1);
 
-        case 10: // Pentamino R
-            jeu->AjouteCellule(mid_rows, mid_cols);
-            jeu->AjouteCellule(mid_rows, mid_cols - 1);
-            jeu->AjouteCellule(mid_rows - 1, mid_cols);
-            jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
-            jeu->AjouteCellule(mid_rows + 1, mid_cols);
-            break;
+        // Left and right vertical 3-cell segments
+        jeu->ajoute_colonne(mid_cols - 4, mid_rows - 1, mid_rows + 1);
+        jeu->ajoute_colonne(mid_cols + 5, mid_rows - 1, mid_rows + 1);
 
-        case 11: 
-            jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols + 1);
-            jeu->AjouteCellule(mid_rows - 1, mid_cols - 1);
-            jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
-            break;
-        case 12: { // Canon à glisseur de Gosper (Infinite Structure) chatgpt
-            // Offset it slightly top-left so it has room to shoot towards bottom-right
-            int r0 = mid_rows - 10;
+        // Diagonal transition cells (AjouteCellule uses row, col = Y, X)
+        //Top left
+        jeu->AjouteCellule(mid_rows - 2, mid_cols - 3);
+        jeu->AjouteCellule(mid_rows - 3, mid_cols - 2);
+
+        //Top right
+        jeu->AjouteCellule(mid_rows - 2, mid_cols + 4);
+        jeu->AjouteCellule(mid_rows - 3, mid_cols + 3);
+
+        //Bottom left
+        jeu->AjouteCellule(mid_rows + 2, mid_cols - 3);
+        jeu->AjouteCellule(mid_rows + 3, mid_cols - 2);
+
+        //Bottom right
+        jeu->AjouteCellule(mid_rows + 2, mid_cols + 4);
+        jeu->AjouteCellule(mid_rows + 3, mid_cols + 3);
+        break;
+        
+    case 8: // Galaxie 
+        
+        //Top right
+        jeu->ajoute_ligne(mid_rows - 3, mid_cols, mid_cols + 5);
+        jeu->ajoute_ligne(mid_rows - 4, mid_cols, mid_cols + 5);
+         
+        //Top left
+        jeu->ajoute_colonne(mid_cols - 3, mid_rows - 4, mid_rows + 1);
+        jeu->ajoute_colonne(mid_cols - 2, mid_rows - 4, mid_rows + 1);
+        
+        //Bottom left
+        jeu->ajoute_ligne(mid_rows + 3, mid_cols - 3, mid_cols + 2);
+        jeu->ajoute_ligne(mid_rows + 4, mid_cols - 3, mid_cols + 2);
+        
+        //Bottom right
+        jeu->ajoute_colonne(mid_cols + 4, mid_rows - 1, mid_rows + 4);
+        jeu->ajoute_colonne(mid_cols + 5, mid_rows - 1, mid_rows + 4);
+        break;
+    
+    case 9: // Glisseur (Vaisseau)
+        jeu->AjouteCellule(mid_rows - 1, mid_cols);
+        jeu->AjouteCellule(mid_rows, mid_cols + 1);
+        jeu->ajoute_ligne(mid_rows + 1, mid_cols - 1, mid_cols + 1);
+        break;
+    case 10: // Pentamino R
+        jeu->AjouteCellule(mid_rows, mid_cols);
+        jeu->AjouteCellule(mid_rows, mid_cols - 1);
+        jeu->AjouteCellule(mid_rows - 1, mid_cols);
+        jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
+        jeu->AjouteCellule(mid_rows + 1, mid_cols);
+        break;
+    case 11: // La structure en U
+        jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols + 1);
+        jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
+        jeu->AjouteCellule(mid_rows - 1, mid_cols - 1);
+        jeu->AjouteCellule(mid_rows - 2, mid_cols + 1);
+        jeu->AjouteCellule(mid_rows - 2, mid_cols - 1);
+        break;
+
+    case 12: //Structure Infini
+        int r0 = mid_rows - 10;
             int c0 = mid_cols - 18;
             
             // Block 1 (Left square)
@@ -231,8 +285,7 @@ void GUI::loadConfig(const wxString& name) {
             jeu->ajoute_ligne(r0 + 2, c0 + 34, c0 + 35);
             jeu->ajoute_ligne(r0 + 3, c0 + 34, c0 + 35);
             break;
-        }
+
     }
-    
-    drawPanel->Refresh(); 
+    drawPanel->Refresh();
 }
