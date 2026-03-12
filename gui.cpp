@@ -1,9 +1,7 @@
 #include "gui.hpp"
 
-// Connect event table by IDs
+
 wxBEGIN_EVENT_TABLE(GUI, wxFrame)
-    EVT_PAINT(GUI::OnPaint)
-    EVT_LEFT_DOWN(GUI::OnMouseClick)
     EVT_BUTTON(ID_BTN_START, GUI::OnStart)
     EVT_BUTTON(ID_BTN_STOP, GUI::OnStop)
     EVT_BUTTON(ID_BTN_CLEAR, GUI::OnClear)
@@ -11,14 +9,23 @@ wxBEGIN_EVENT_TABLE(GUI, wxFrame)
     EVT_TIMER(ID_TIMER, GUI::OnTimer)
 wxEND_EVENT_TABLE()
 
-
-
 GUI::GUI(const wxString& title, int rows, int cols)
-    : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(cols * 15 + 20, rows * 15 + 100), wxDEFAULT_FRAME_STYLE),
+    : wxFrame(NULL, wxID_ANY, title),
       jeu(new Jeu(rows, cols)), rows(rows), cols(cols), cellSize(15)
 {
+   
+    SetClientSize(wxSize(cols * cellSize, rows * cellSize + 50));
 
-    controlPanel = new wxPanel(this, wxID_ANY, wxPoint(0, rows * cellSize), wxSize(cols * cellSize + 20, 100));
+    
+    drawPanel = new wxPanel(this, wxID_ANY, wxPoint(0, 0), wxSize(cols * cellSize, rows * cellSize));
+    drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT); // Prevents visual flickering
+    
+    
+    drawPanel->Bind(wxEVT_PAINT, &GUI::OnPaint, this);
+    drawPanel->Bind(wxEVT_LEFT_DOWN, &GUI::OnMouseClick, this);
+
+   
+    controlPanel = new wxPanel(this, wxID_ANY, wxPoint(0, rows * cellSize), wxSize(cols * cellSize, 50));
 
     btnStart = new wxButton(controlPanel, ID_BTN_START, wxT("Start"), wxPoint(10, 10));
     btnStop  = new wxButton(controlPanel, ID_BTN_STOP, wxT("Stop"), wxPoint(100, 10));
@@ -37,6 +44,7 @@ GUI::GUI(const wxString& title, int rows, int cols)
     configs.Add(wxT("Vaisseau"));
     configs.Add(wxT("Pentamino R"));
     configs.Add(wxT("Structure U"));
+    configs.Add(wxT("Structure Infinite"));
     
     configChoice = new wxChoice(controlPanel, ID_CHOICE_CONFIG, wxPoint(280, 10), wxDefaultSize, configs);
 
@@ -48,29 +56,10 @@ GUI::~GUI() {
     delete jeu;
 }
 
-// void GUI::OnPaint(wxPaintEvent& evt) {
-//     wxPaintDC dc(this);
-//     dc.SetBackground(*wxBLACK_BRUSH);
-//     dc.Clear();
-//     dc.SetBrush(*wxWHITE_BRUSH);
-//     dc.SetPen(*wxTRANSPARENT_PEN);
-
-//     Grille g = jeu->getNow();
-//     for (int r = 0; r < rows; r++) {
-//         for (int c = 0; c < cols; c++) {
-//             if (g.EstOccupee(r, c)) {
-//                 dc.DrawCircle(c * cellSize + cellSize / 2, r * cellSize + cellSize / 2, cellSize / 2 - 1);
-//             }
-//         }
-//     }
-// }
-
-
 void GUI::OnPaint(wxPaintEvent& evt) {
-    wxPaintDC dc(this);
+    wxPaintDC dc(drawPanel);
     dc.SetBackground(*wxBLACK_BRUSH);
     dc.Clear();
-
 
     dc.SetBrush(*wxWHITE_BRUSH);
     dc.SetPen(*wxTRANSPARENT_PEN);
@@ -79,7 +68,6 @@ void GUI::OnPaint(wxPaintEvent& evt) {
     for (int r = 0; r < rows; r++) {
         for (int c = 0; c < cols; c++) {
             if (g.EstOccupee(r, c)) {
-        
                 dc.DrawCircle(c * cellSize + cellSize / 2, r * cellSize + cellSize / 2, cellSize / 2 - 1);
             }
         }
@@ -90,15 +78,18 @@ void GUI::OnMouseClick(wxMouseEvent& evt) {
     int col = evt.GetX() / cellSize;
     int row = evt.GetY() / cellSize;
 
-    // Sınır kontrolü (Kullanıcının kontrol paneline tıklamasını filtrelemek için)
     if (row >= 0 && row < rows && col >= 0 && col < cols) {
         if (jeu->getNow().EstOccupee(row, col)) {
             jeu->SupprimeCellule(row, col);
         } else {
             jeu->AjouteCellule(row, col);
         }
-        Refresh(); // Çizimi tetikler (OnPaint'i çağırır)
+        
+        
+        drawPanel->Refresh(); 
+        drawPanel->Update();  
     }
+    evt.Skip(); 
 }
 
 void GUI::OnStart(wxCommandEvent& evt) {
@@ -112,144 +103,29 @@ void GUI::OnStop(wxCommandEvent& evt) {
 void GUI::OnClear(wxCommandEvent& evt) {
     timer->Stop();
     jeu->setNow(Grille(rows, cols));
-    Refresh();
+    drawPanel->Refresh(); // Refresh drawPanel
 }
 
 void GUI::OnTimer(wxTimerEvent& evt) {
     jeu->avance();
-    Refresh();
+    drawPanel->Refresh();
 }
 
 void GUI::OnConfigChoice(wxCommandEvent& evt) {
     loadConfig(configChoice->GetStringSelection());
 }
 
-// void GUI::loadConfig(const wxString& name) {
-//     // TODO: Fix x y and row col confusion in the following code
-
-//     jeu->setNow(Grille(rows, cols));
-//     int mid_cols = rows / 2;
-//     int mid_rows = cols / 2;
-//     std::cout << "mid_cols: " << mid_cols << ", mid_rows: " << mid_rows << std::endl;
-
-//     switch (configChoice->GetSelection()) {
-//     // LES STABLES
-//     // 0 0 is top left of tle grid
-//         switch (configChoice->GetSelection()) {
-//     case 0: // Bloc 
-//         ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-//         ajoute_ligne(mid_rows, mid_cols - 1, mid_cols);
-//         break;
-        
-//     case 1: // Tube 
-//         jeu->AjouteCellule(mid_rows - 1, mid_cols);
-//         jeu->AjouteCellule(mid_rows + 1, mid_cols);
-//         jeu->AjouteCellule(mid_rows, mid_cols - 1);
-//         jeu->AjouteCellule(mid_rows, mid_cols + 1);
-//         break;
-        
-//     case 2: // Bateau 
-//         ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-//         jeu->AjouteCellule(mid_rows, mid_cols - 1);
-//         jeu->AjouteCellule(mid_rows, mid_cols + 1);
-//         jeu->AjouteCellule(mid_rows + 1, mid_cols);
-//         break;
-        
-//     case 3: // Ruche 
-//         ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-//         jeu->AjouteCellule(mid_rows, mid_cols - 2);
-//         jeu->AjouteCellule(mid_rows, mid_cols + 1);
-//         ajoute_ligne(mid_rows + 1, mid_cols - 1, mid_cols);
-//         break;
-        
-//     case 4: // Hameçon 
-//         ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-//         jeu->AjouteCellule(mid_rows, mid_cols - 1);
-//         jeu->AjouteCellule(mid_rows, mid_cols + 1);
-//         jeu->AjouteCellule(mid_rows + 1, mid_cols + 1);
-//         ajoute_ligne(mid_rows + 2, mid_cols + 1, mid_cols + 2);
-//         break;
-
-//     case 5: // Clignotant 
-//         ajoute_colonne(mid_cols, mid_rows - 1, mid_rows + 1);
-//         break;
-        
-//     case 6: // Horloge 
-//         // Top Square 2x2
-//         ajoute_ligne(mid_rows - 6, mid_cols - 1, mid_cols);
-//         ajoute_ligne(mid_rows - 5, mid_cols - 1, mid_cols);
-//         // Bottom Square 2x2
-//         ajoute_ligne(mid_rows + 5, mid_cols - 1, mid_cols);
-//         ajoute_ligne(mid_rows + 6, mid_cols - 1, mid_cols);
-//         // Left 2x2
-//         ajoute_colonne(mid_cols - 6, mid_rows - 1, mid_rows);
-//         ajoute_colonne(mid_cols - 5, mid_rows - 1, mid_rows);
-//         // Right 2x2
-//         ajoute_colonne(mid_cols + 5, mid_rows - 1, mid_rows);
-//         ajoute_colonne(mid_cols + 6, mid_rows - 1, mid_rows);
-        
-//         // LR inner cycle
-//         ajoute_colonne(mid_cols - 2, mid_rows - 2, mid_rows + 1);
-//         ajoute_colonne(mid_cols + 2, mid_rows - 1, mid_rows + 2);
-//         // TB inner cycle
-//         ajoute_ligne(mid_rows - 2, mid_cols - 1, mid_cols + 1);
-//         ajoute_ligne(mid_rows + 2, mid_cols - 2, mid_cols);
-        
-        
-//         jeu->AjouteCellule(mid_rows - 1, mid_cols - 1);
-//         jeu->AjouteCellule(mid_rows, mid_cols + 1);
-//         break;
-        
-//     case 7: // Pentadecathlon 
-
-//         ajoute_ligne(mid_rows - 2, mid_cols - 1, mid_cols + 2);
-//         ajoute_ligne(mid_rows + 3, mid_cols - 1, mid_cols + 2);
-        
-//         ajoute_colonne(mid_cols - 3, mid_rows, mid_rows + 1);
-//         ajoute_colonne(mid_cols + 4, mid_rows, mid_rows + 1);
-        
-//         jeu->AjouteCellule(mid_rows - 1, mid_cols - 2); 
-//         jeu->AjouteCellule(mid_rows + 2, mid_cols - 2); 
-//         jeu->AjouteCellule(mid_rows - 1, mid_cols + 3); 
-//         jeu->AjouteCellule(mid_rows + 2, mid_cols + 3); 
-//         break;
-        
-//     case 8: // Galaxie 
-        
-//         ajoute_ligne(mid_rows - 4, mid_cols - 4, mid_cols + 1);
-//         ajoute_ligne(mid_rows - 3, mid_cols - 4, mid_cols + 1);
-         
-//         ajoute_colonne(mid_cols + 3, mid_rows - 4, mid_rows + 1);
-//         ajoute_colonne(mid_cols + 4, mid_rows - 4, mid_rows + 1);
-        
-//         ajoute_ligne(mid_rows + 3, mid_cols - 1, mid_cols + 4);
-//         ajoute_ligne(mid_rows + 4, mid_cols - 1, mid_cols + 4);
-        
-//         ajoute_colonne(mid_cols - 4, mid_rows - 1, mid_rows + 4);
-//         ajoute_colonne(mid_cols - 3, mid_rows - 1, mid_rows + 4);
-//         break;
-//     }
-//     Refresh();
-// }
-// }
-
-
 void GUI::loadConfig(const wxString& name) {
-    
     jeu->setNow(Grille(rows, cols));
 
     int mid_rows = rows / 2;
     int mid_cols = cols / 2;
 
-    
     switch (configChoice->GetSelection()) {
         case 0: // Bloc 
-        jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-        jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols);
-        break;
-            // jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
-            // jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols);
-            // break;
+            jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
+            jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols);
+            break;
             
         case 1: // Tube 
             jeu->AjouteCellule(mid_rows - 1, mid_cols);
@@ -296,32 +172,67 @@ void GUI::loadConfig(const wxString& name) {
             break;
             
         case 8: // Galaxie 
-        jeu->ajoute_ligne(mid_rows - 4, mid_cols - 4, mid_cols + 1);
-        jeu->ajoute_ligne(mid_rows - 3, mid_cols - 4, mid_cols + 1);
-        jeu->ajoute_colonne(mid_cols + 3, mid_rows - 4, mid_rows + 1);
-        jeu->ajoute_colonne(mid_cols + 4, mid_rows - 4, mid_rows + 1);
-        jeu->ajoute_ligne(mid_rows + 3, mid_cols - 1, mid_cols + 4);
-        jeu->ajoute_ligne(mid_rows + 4, mid_cols - 1, mid_cols + 4);
-        jeu->ajoute_colonne(mid_cols - 4, mid_rows - 1, mid_rows + 4);
-        jeu->ajoute_colonne(mid_cols - 3, mid_rows - 1, mid_rows + 4);
-        break;
-        case 9: // Glisseur (Vaisseau)
-        jeu->AjouteCellule(mid_rows - 1, mid_cols);
-        jeu->AjouteCellule(mid_rows, mid_cols + 1);
-        jeu->ajoute_ligne(mid_rows + 1, mid_cols - 1, mid_cols + 1);
-        break;
+            jeu->ajoute_ligne(mid_rows - 4, mid_cols - 4, mid_cols + 1);
+            jeu->ajoute_ligne(mid_rows - 3, mid_cols - 4, mid_cols + 1);
+            jeu->ajoute_colonne(mid_cols + 3, mid_rows - 4, mid_rows + 1);
+            jeu->ajoute_colonne(mid_cols + 4, mid_rows - 4, mid_rows + 1);
+            jeu->ajoute_ligne(mid_rows + 3, mid_cols - 1, mid_cols + 4);
+            jeu->ajoute_ligne(mid_rows + 4, mid_cols - 1, mid_cols + 4);
+            jeu->ajoute_colonne(mid_cols - 4, mid_rows - 1, mid_rows + 4);
+            jeu->ajoute_colonne(mid_cols - 3, mid_rows - 1, mid_rows + 4);
+            break;
+
+        case 9: // (Vaisseau)
+            jeu->AjouteCellule(mid_rows - 1, mid_cols);
+            jeu->AjouteCellule(mid_rows, mid_cols + 1);
+            jeu->ajoute_ligne(mid_rows + 1, mid_cols - 1, mid_cols + 1);
+            break;
+
         case 10: // Pentamino R
-        jeu->AjouteCellule(mid_rows, mid_cols);
-        jeu->AjouteCellule(mid_rows, mid_cols - 1);
-        jeu->AjouteCellule(mid_rows - 1, mid_cols);
-        jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
-        jeu->AjouteCellule(mid_rows + 1, mid_cols);
-        break;
-        case 11: // La structure en U
-        jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols + 1);
-        jeu->AjouteCellule(mid_rows - 1, mid_cols - 1);
-        jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
-        break;
+            jeu->AjouteCellule(mid_rows, mid_cols);
+            jeu->AjouteCellule(mid_rows, mid_cols - 1);
+            jeu->AjouteCellule(mid_rows - 1, mid_cols);
+            jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
+            jeu->AjouteCellule(mid_rows + 1, mid_cols);
+            break;
+
+        case 11: 
+            jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols + 1);
+            jeu->AjouteCellule(mid_rows - 1, mid_cols - 1);
+            jeu->AjouteCellule(mid_rows - 1, mid_cols + 1);
+            break;
+        case 12: { // Canon à glisseur de Gosper (Infinite Structure) chatgpt
+            // Offset it slightly top-left so it has room to shoot towards bottom-right
+            int r0 = mid_rows - 10;
+            int c0 = mid_cols - 18;
+            
+            // Block 1 (Left square)
+            jeu->ajoute_ligne(r0 + 4, c0, c0 + 1);
+            jeu->ajoute_ligne(r0 + 5, c0, c0 + 1);
+            
+            // Mechanism 1 (Left engine)
+            jeu->ajoute_colonne(c0 + 10, r0 + 4, r0 + 6);
+            jeu->AjouteCellule(r0 + 3, c0 + 11); jeu->AjouteCellule(r0 + 7, c0 + 11);
+            jeu->AjouteCellule(r0 + 2, c0 + 12); jeu->AjouteCellule(r0 + 8, c0 + 12);
+            jeu->AjouteCellule(r0 + 2, c0 + 13); jeu->AjouteCellule(r0 + 8, c0 + 13);
+            jeu->AjouteCellule(r0 + 5, c0 + 14);
+            jeu->AjouteCellule(r0 + 3, c0 + 15); jeu->AjouteCellule(r0 + 7, c0 + 15);
+            jeu->ajoute_colonne(c0 + 16, r0 + 4, r0 + 6);
+            jeu->AjouteCellule(r0 + 5, c0 + 17);
+            
+            // Mechanism 2 (Right engine)
+            jeu->ajoute_colonne(c0 + 20, r0 + 2, r0 + 4);
+            jeu->ajoute_colonne(c0 + 21, r0 + 2, r0 + 4);
+            jeu->AjouteCellule(r0 + 1, c0 + 22); jeu->AjouteCellule(r0 + 5, c0 + 22);
+            jeu->ajoute_colonne(c0 + 24, r0 + 0, r0 + 1);
+            jeu->ajoute_colonne(c0 + 24, r0 + 5, r0 + 6);
+            
+            // Block 2 (Right square)
+            jeu->ajoute_ligne(r0 + 2, c0 + 34, c0 + 35);
+            jeu->ajoute_ligne(r0 + 3, c0 + 34, c0 + 35);
+            break;
+        }
     }
-    Refresh();
+    
+    drawPanel->Refresh(); 
 }

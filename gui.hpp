@@ -24,7 +24,10 @@ private:
     int rows, cols;
     int cellSize;
 
+    // We now use TWO panels: one for drawing, one for the buttons
+    wxPanel* drawPanel;
     wxPanel* controlPanel;
+    
     wxButton* btnStart;
     wxButton* btnStop;
     wxButton* btnClear;
@@ -40,7 +43,7 @@ private:
     void OnConfigChoice(wxCommandEvent& evt);
     void loadConfig(const wxString& name);
 
-    wxDECLARE_EVENT_TABLE(); // Statik olay tablosu bildirimi
+    wxDECLARE_EVENT_TABLE(); 
 };
 
 #endif
