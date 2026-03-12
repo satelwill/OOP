@@ -3,7 +3,7 @@ CXXFLAGS = -std=c++17 -Wall -Wextra `wx-config --cxxflags`
 LDLIBS=`wx-config --libs`
 
 TARGET = exo1
-SRCS   = Grille.cpp Jeu.cpp main.cpp
+SRCS   = Grille.cpp Jeu.cpp gui.cpp main.cpp
 OBJS   = $(SRCS:.cpp=.o)
 
 $(TARGET): $(OBJS)

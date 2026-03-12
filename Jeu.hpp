@@ -25,6 +25,8 @@ public:
     void SupprimeCellule(int rowIndex, int colIndex);
     void avance();
     void attendre() const; // sleep for 'time' milliseconds
+    void ajoute_colonne( int col , int start_col, int end_col);
+    void ajoute_ligne( int row , int start_row, int end_row);
 };
 
 #endif

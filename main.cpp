@@ -1,53 +1,16 @@
 #include "Jeu.hpp"
-#include <iostream>
-#include <chrono>
+#include "gui.hpp"
+#include "Grille.hpp"
+#include <wx/wx.h>
 
-void test_ex1() {
-    Jeu g1(20, 20,5000);
-
-    while(true) {
-
-
-        std::cout << "Initial state:\n";
-        g1.afficheC();
-        std::cout << "\n";
-
-
-        g1.AjouteCellule(5, 5);
-        g1.AjouteCellule(5, 6);
-        g1.AjouteCellule(5, 7);
-        std::cout << "After adding cells:\n";
-        g1.afficheC();
-        std::cout << "\n";
-
-        g1.avance();
-        std::cout << "After 1st advance:\n";
-        g1.afficheC();
-        std::cout << "\n";
-
-        g1.avance();
-        std::cout << "After 2nd advance:\n";
-        g1.afficheC();
-        std::cout << "\n";
-
-        g1.avance();
-        std::cout << "After 3rd advance:\n";
-        g1.afficheC();
-        std::cout << "\n";
-
-        g1.avance();
-        std::cout << "After 4th advance:\n";
-        g1.afficheC();
-        std::cout << "\n";
-        
-        g1.attendre();
-
-        
+class App : public wxApp {
+public:
+    bool OnInit() override {
+        GUI* win = new GUI(wxT("Game of Life"), 30, 30);
+        win->Show(true);
+        SetTopWindow(win);
+        return true;
     }
-    
-}
+};
 
-int main() {
-    test_ex1();
-    return 0;
-}
+wxIMPLEMENT_APP(App);
