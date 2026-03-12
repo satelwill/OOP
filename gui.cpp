@@ -1,9 +1,7 @@
 #include "gui.hpp"
 
-// Connect event table by IDs
+
 wxBEGIN_EVENT_TABLE(GUI, wxFrame)
-    EVT_PAINT(GUI::OnPaint)
-    EVT_LEFT_DOWN(GUI::OnMouseClick)
     EVT_BUTTON(ID_BTN_START, GUI::OnStart)
     EVT_BUTTON(ID_BTN_STOP, GUI::OnStop)
     EVT_BUTTON(ID_BTN_CLEAR, GUI::OnClear)
@@ -11,14 +9,23 @@ wxBEGIN_EVENT_TABLE(GUI, wxFrame)
     EVT_TIMER(ID_TIMER, GUI::OnTimer)
 wxEND_EVENT_TABLE()
 
-
-
 GUI::GUI(const wxString& title, int rows, int cols)
-    : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(cols * 15 + 20, rows * 15 + 100), wxDEFAULT_FRAME_STYLE),
+    : wxFrame(NULL, wxID_ANY, title),
       jeu(new Jeu(rows, cols)), rows(rows), cols(cols), cellSize(15)
 {
+   
+    SetClientSize(wxSize(cols * cellSize, rows * cellSize + 50));
 
-    controlPanel = new wxPanel(this, wxID_ANY, wxPoint(0, rows * cellSize), wxSize(cols * cellSize + 20, 100));
+    
+    drawPanel = new wxPanel(this, wxID_ANY, wxPoint(0, 0), wxSize(cols * cellSize, rows * cellSize));
+    drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT); // Prevents visual flickering
+    
+    
+    drawPanel->Bind(wxEVT_PAINT, &GUI::OnPaint, this);
+    drawPanel->Bind(wxEVT_LEFT_DOWN, &GUI::OnMouseClick, this);
+
+   
+    controlPanel = new wxPanel(this, wxID_ANY, wxPoint(0, rows * cellSize), wxSize(cols * cellSize, 50));
 
     btnStart = new wxButton(controlPanel, ID_BTN_START, wxT("Start"), wxPoint(10, 10));
     btnStop  = new wxButton(controlPanel, ID_BTN_STOP, wxT("Stop"), wxPoint(100, 10));
@@ -34,11 +41,11 @@ GUI::GUI(const wxString& title, int rows, int cols)
     configs.Add(wxT("Horloge"));
     configs.Add(wxT("Pentadecathlon"));
     configs.Add(wxT("Galaxie"));
-    configs.Add(wxT("Glisseur"));
+    configs.Add(wxT("Vaisseau"));
     configs.Add(wxT("Pentamino R"));
-    configs.Add(wxT("La structure en U"));
-    configs.Add(wxT("Structure Infini"));
-
+    configs.Add(wxT("Structure U"));
+    configs.Add(wxT("Structure Infinite"));
+    
     configChoice = new wxChoice(controlPanel, ID_CHOICE_CONFIG, wxPoint(280, 10), wxDefaultSize, configs);
 
     timer = new wxTimer(this, ID_TIMER);
@@ -50,9 +57,10 @@ GUI::~GUI() {
 }
 
 void GUI::OnPaint(wxPaintEvent& evt) {
-    wxPaintDC dc(this);
+    wxPaintDC dc(drawPanel);
     dc.SetBackground(*wxBLACK_BRUSH);
     dc.Clear();
+
     dc.SetBrush(*wxWHITE_BRUSH);
     dc.SetPen(*wxTRANSPARENT_PEN);
 
@@ -70,16 +78,19 @@ void GUI::OnMouseClick(wxMouseEvent& evt) {
     int col = evt.GetX() / cellSize;
     int row = evt.GetY() / cellSize;
 
-        
     if (row >= 0 && row < rows && col >= 0 && col < cols) {
-            if (jeu->getNow().EstOccupee(row, col)) {
-                jeu->SupprimeCellule(row, col);
-            } else {
-                jeu->AjouteCellule(row, col);
-            }
-            Refresh(); 
+        if (jeu->getNow().EstOccupee(row, col)) {
+            jeu->SupprimeCellule(row, col);
+        } else {
+            jeu->AjouteCellule(row, col);
         }
+        
+        
+        drawPanel->Refresh(); 
+        drawPanel->Update();  
     }
+    evt.Skip(); 
+}
 
 void GUI::OnStart(wxCommandEvent& evt) {
     timer->Start(150);
@@ -92,12 +103,12 @@ void GUI::OnStop(wxCommandEvent& evt) {
 void GUI::OnClear(wxCommandEvent& evt) {
     timer->Stop();
     jeu->setNow(Grille(rows, cols));
-    Refresh();
+    drawPanel->Refresh(); // Refresh drawPanel
 }
 
 void GUI::OnTimer(wxTimerEvent& evt) {
     jeu->avance();
-    Refresh();
+    drawPanel->Refresh();
 }
 
 void GUI::OnConfigChoice(wxCommandEvent& evt) {
@@ -105,18 +116,12 @@ void GUI::OnConfigChoice(wxCommandEvent& evt) {
 }
 
 void GUI::loadConfig(const wxString& name) {
-    
-
     jeu->setNow(Grille(rows, cols));
-    int mid_cols = rows / 2;
-    int mid_rows = cols / 2;
-    std::cout << "mid_cols: " << mid_cols << ", mid_rows: " << mid_rows << std::endl;
+
+    int mid_rows = rows / 2;
+    int mid_cols = cols / 2;
 
     switch (configChoice->GetSelection()) {
-    // 0 0 is top left of tle grid
-    // !!!!!-Careful with the coordinates, they are in (y, x) format (row, col)
-
-    // LES STABLES
     case 0: // Bloc 
         jeu->ajoute_ligne(mid_rows - 1, mid_cols - 1, mid_cols);
         jeu->ajoute_ligne(mid_rows, mid_cols - 1, mid_cols);
@@ -166,6 +171,7 @@ void GUI::loadConfig(const wxString& name) {
         jeu->ajoute_ligne(mid_rows + 5, mid_cols - 1, mid_cols);
         jeu->ajoute_ligne(mid_rows + 6, mid_cols - 1, mid_cols);
         // Left 2x2
+
         jeu->ajoute_colonne(mid_cols - 5, mid_rows - 1, mid_rows);
         jeu->ajoute_colonne(mid_cols - 4, mid_rows - 1, mid_rows);
         // Right 2x2
@@ -282,5 +288,5 @@ void GUI::loadConfig(const wxString& name) {
             break;
 
     }
-    Refresh();
+    drawPanel->Refresh();
 }
